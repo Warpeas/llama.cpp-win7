@@ -17,6 +17,70 @@
 
 </div>
 
+## Win7 packaging fork
+
+This repository is a fork of `llama.cpp` for Win7-compatible runtime packaging.
+
+It is not the official upstream project. This fork provides a practical build path for users who need to run `llama.cpp` on Windows 7 while keeping the standard upstream build flow available for normal Windows environments.
+
+### Branches
+
+- `master`: synced with upstream `llama.cpp`
+- `win7-runtime-packaging`: Win7 compatibility and packaging branch
+
+### Build modes
+
+#### Standard build
+
+The normal `llama.cpp` build flow remains available. If you only need a standard Windows build, follow the upstream documentation.
+
+#### Win7 package build
+
+This fork includes a packaging script for a Win7-compatible runtime build:
+
+- [scripts/build-win7-runtime.ps1](scripts/build-win7-runtime.ps1)
+
+The script is intended for a verified local environment and may need adjustment based on your toolchain and host setup.
+
+#### Provisioning the Web UI assets
+
+`llama-server` embeds the Web UI assets at build time. [scripts/ui-assets.cmake](scripts/ui-assets.cmake) picks them in a fixed priority order, listed here from highest to lowest:
+
+1. Pre-built UI package in `tools\ui\dist`
+
+   Download the pre-built UI from a [llama.cpp release](https://github.com/ggml-org/llama.cpp/releases) and extract it so that `tools\ui\dist\index.html` exists. Being checked first, it wins over both options below and nothing is fetched or built afterwards. This is what `build-win7-runtime.ps1` uses, together with `-DLLAMA_BUILD_UI=ON -DLLAMA_USE_PREBUILT_UI=OFF`.
+
+2. Built from source with npm
+
+   With `tools\ui\dist` empty, `-DLLAMA_BUILD_UI=ON` runs `npm ci` and then `npm run build`. It requires npm to be available on the host.
+
+3. Download from the Hugging Face bucket
+
+   If neither produced assets, `-DLLAMA_USE_PREBUILT_UI=ON` (the upstream default) fetches them from the `ggml-org/llama-ui` bucket, verifies them against `dist.tar.gz.sha256` and extracts them. It requires network access during the build.
+
+The paths above are given with Windows separators; use `/` on other platforms.
+
+> Only option 1 has been verified in this fork. Options 2 and 3 follow the upstream code paths, but they were not exercised here.
+
+### Compatibility note
+
+Win7 support is kept explicit and isolated so normal builds remain close to the upstream project.
+
+### Sync from upstream
+
+```bash
+git fetch upstream
+git checkout master
+git merge upstream/master
+```
+
+Then update the Win7 branch:
+
+```bash
+git checkout win7-runtime-packaging
+git rebase master
+```
+
 ## Quick start
 
 A few options to get `llama.cpp` installed on your machine:

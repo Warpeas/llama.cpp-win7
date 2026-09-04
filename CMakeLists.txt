@@ -77,9 +77,13 @@ else()
 endif()
 
 option(BUILD_SHARED_LIBS "build shared libraries" ${BUILD_SHARED_LIBS_DEFAULT})
+option(LLAMA_WIN7_COMPAT "llama: enable Windows 7 compatibility API shims" OFF)
 
 if (WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+    if (LLAMA_WIN7_COMPAT)
+        add_compile_definitions(_WIN32_WINNT=0x0601 LLAMA_WIN7_COMPAT)
+    endif()
 endif()
 
 if (MSVC)

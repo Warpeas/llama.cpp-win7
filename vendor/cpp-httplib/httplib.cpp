@@ -1516,9 +1516,17 @@ bool mmap::open(const char *path) {
   auto wpath = u8string_to_wstring(path);
   if (wpath.empty()) { return false; }
 
+#if defined(LLAMA_WIN7_COMPAT)
+  // Win7 path: use legacy Win32 file/mapping APIs.
   hFile_ =
-      ::CreateFile2(wpath.c_str(), GENERIC_READ,
-                    FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING, NULL);
+      ::CreateFileW(wpath.c_str(), GENERIC_READ,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+                    FILE_ATTRIBUTE_NORMAL, NULL);
+#else
+  // Default path: prefer modern APIs, fallback to legacy when unavailable.
+  hFile_ = ::CreateFile2(wpath.c_str(), GENERIC_READ,
+                         FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING, NULL);
+#endif
 
   if (hFile_ == INVALID_HANDLE_VALUE) { return false; }
 
@@ -1534,8 +1542,15 @@ bool mmap::open(const char *path) {
   }
   size_ = static_cast<size_t>(size.QuadPart);
 
+#if defined(LLAMA_WIN7_COMPAT)
+  hMapping_ = ::CreateFileMappingW(
+      hFile_, NULL, PAGE_READONLY,
+      static_cast<DWORD>((size_ >> 32) & 0xffffffff),
+      static_cast<DWORD>(size_ & 0xffffffff), NULL);
+#else
   hMapping_ =
       ::CreateFileMappingFromApp(hFile_, NULL, PAGE_READONLY, size_, NULL);
+#endif
 
   // Special treatment for an empty file...
   if (hMapping_ == NULL && size_ == 0) {
@@ -1549,7 +1564,11 @@ bool mmap::open(const char *path) {
     return false;
   }
 
+#if defined(LLAMA_WIN7_COMPAT)
+  addr_ = ::MapViewOfFile(hMapping_, FILE_MAP_READ, 0, 0, 0);
+#else
   addr_ = ::MapViewOfFileFromApp(hMapping_, FILE_MAP_READ, 0, 0);
+#endif
 
   if (addr_ == nullptr) {
     close();

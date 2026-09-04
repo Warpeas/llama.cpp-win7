@@ -12,7 +12,9 @@
 #define CPPHTTPLIB_VERSION_NUM "0x003501"
 
 #ifdef _WIN32
-#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0A00
+// Win7 builds opt out of the upstream target-version check: the shims live in
+// httplib.cpp and are selected by LLAMA_WIN7_COMPAT instead of _WIN32_WINNT.
+#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0A00 && !defined(LLAMA_WIN7_COMPAT)
 #error                                                                         \
     "cpp-httplib doesn't support Windows 8 or lower. Please use Windows 10 or later."
 #endif
