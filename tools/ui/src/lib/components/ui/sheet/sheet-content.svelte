@@ -47,7 +47,7 @@
 
 	<SheetPrimitive.Content
 		bind:ref
-		class={cn(sheetVariants({ side }), className)}
+		class={cn('sheet-content-legacy', sheetVariants({ side }), className)}
 		data-slot="sheet-content"
 		{...restProps}
 	>

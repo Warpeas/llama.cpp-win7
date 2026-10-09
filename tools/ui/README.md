@@ -15,6 +15,7 @@ Llama UI supports two server operation modes:
 - [Getting Started](#getting-started)
 - [Tech Stack](#tech-stack)
 - [Build Pipeline](#build-pipeline)
+- [Legacy Browser Compatibility](#legacy-browser-compatibility)
 - [Architecture](#architecture)
 - [Data Flows](#data-flows)
 - [Architectural Patterns](#architectural-patterns)
@@ -226,6 +227,25 @@ llama-ui is embedded directly into the llama-server binary:
 3. When accessing `/`, llama-server serves the bundled HTML
 
 This results in a **single portable binary** with the full Llama UI included.
+
+### Legacy Browser Compatibility
+
+The UI is optimized for modern Chromium/Safari/Firefox engines. A compatibility fallback is also included for older Chromium-based browsers that do not support `100dvh` or `color-mix()`.
+
+The fallback currently covers these cases:
+
+- Chat input area keeps readable background and blur behavior without `color-mix()`.
+- Dialog, dropdown, and sheet overlays use legacy sizing and positioning to avoid viewport overflow.
+- MCP "Add New Server" dialog uses a fixed max width fallback on small/medium screens.
+
+These fallback styles are implemented in `src/app.css` and are automatically applied through CSS `@supports` checks.
+
+For Win7 runtime packaging with `-ExternalUi`, always rebuild UI assets first so the latest compatibility fixes are copied into `runtime/ui`:
+
+```bash
+cd tools/ui
+npm run build
+```
 
 ---
 

@@ -246,7 +246,7 @@
 </script>
 
 <Dialog.Root onOpenChange={handleOpenChange} {open}>
-	<Dialog.Content class="sm:max-w-2xl">
+	<Dialog.Content class="mcp-server-dialog-legacy max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl">
 		<Dialog.Header>
 			<Dialog.Title class="select-none">Add New MCP Server</Dialog.Title>
 		</Dialog.Header>

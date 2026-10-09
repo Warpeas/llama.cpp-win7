@@ -314,7 +314,7 @@
 <svelte:document onvisibilitychange={handleVisibilityChange} />
 
 <Tooltip.Provider delayDuration={TOOLTIP_DELAY_DURATION}>
-	<div class="flex flex-col md:flex-row">
+	<div class="flex h-full min-h-0 flex-col md:flex-row">
 		<SidebarNavigation
 			onSearchClick={() => {
 				if (deviceStore.isMobile) {
@@ -325,7 +325,7 @@
 			}}
 		/>
 
-		<div class="flex-1">
+		<div class="min-h-0 flex-1">
 			{@render children?.()}
 		</div>
 	</div>

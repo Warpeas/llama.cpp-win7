@@ -10,9 +10,13 @@
     and is not enabled in a normal upstream build.
 
     Example invocation (PowerShell):
-      pwsh -NoProfile -File ./scripts/build-win7-runtime.ps1 -Mode cpu -BuildDir build-win7-portable-msys2 -KeepBuildDir
-      or: pwsh -NoProfile -File ./scripts/build-win7-runtime.ps1 -Mode cpu -BuildDir build-win7-portable-msys2
-    NOTE: do not pass $true to a switch parameter; use -KeepBuildDir by itself.
+            pwsh -NoProfile -File ./scripts/build-win7-runtime.ps1 -Mode cpu -BuildDir build-win7-portable-msys2
+            pwsh -NoProfile -File ./scripts/build-win7-runtime.ps1 -Mode cpu -BuildDir build-win7-portable-msys2 -CleanBuildDir
+        If you use -ExternalUi, build UI assets first from tools/ui:
+            cd tools/ui
+            npm run build
+        Add -ExternalUi to ship a separate ui\ directory while keeping the embedded fallback.
+        The existing build directory is kept by default; use -CleanBuildDir for a clean rebuild.
 #>
 param(
     [ValidateSet("cpu", "vulkan", "openvino")]
@@ -21,7 +25,7 @@ param(
     [string]$InstallSubDir = "dist",
     [string]$ZipPrefix = "llama-win7",
     [int]$Jobs = 8,
-    [switch]$KeepBuildDir = $true,
+    [switch]$ExternalUi,
     [switch]$CleanBuildDir,
     [switch]$NoZip,
     [string]$OpenVinoSetupScript = "C:\Intel\openvino\setupvars.ps1",
@@ -115,8 +119,13 @@ $extraCmakeArgs = @(
     # Web UI (see README for the full asset priority order).
     "-DLLAMA_BUILD_UI=ON",          # falls back to an npm build
     "-DLLAMA_USE_PREBUILT_UI=OFF",  # never download UI assets from HF
-    # not needed by the packaged binaries
-    # "-DLLAMA_SUBPROCESS=OFF",
+    # Required by --tools and MCP child-process support. Default is ON
+    # "-DLLAMA_SUBPROCESS=ON",
+
+    # CPU optimization
+    # GGML_NATIVE defaults to ON for native builds and OFF for cross-compiling.
+    # Set it explicitly when building for a specific target platform.
+    # "-DGGML_NATIVE=OFF",
 
     # Trim what is not shipped.
     "-DLLAMA_BUILD_TESTS=OFF",
@@ -158,16 +167,6 @@ switch ($Mode) {
 }
 
 if ($CleanBuildDir -and (Test-Path $buildPath)) {
-    try {
-        Remove-Or-RenameDirectory -PathToRemove $buildPath -Reason "Cleaning previous build directory"
-    }
-    catch {
-        $newBuildDir = Get-AvailableBuildDir -BaseDir $BuildDir
-        Write-Host "Build directory is locked, switching to: $newBuildDir" -ForegroundColor Yellow
-        $BuildDir = $newBuildDir
-    }
-}
-elseif (-not $KeepBuildDir -and (Test-Path $buildPath)) {
     try {
         Remove-Or-RenameDirectory -PathToRemove $buildPath -Reason "Cleaning previous build directory"
     }
@@ -220,6 +219,18 @@ if (-not $NoZip) {
 
     foreach ($file in $runtimeFiles) {
         Copy-Item -Path $file.FullName -Destination $runtimeDir -Force
+    }
+
+    if ($ExternalUi) {
+        $uiSourceDir = Join-Path $RepoRoot "tools\ui\dist"
+        $uiTargetDir = Join-Path $runtimeDir "ui"
+        if (-not (Test-Path (Join-Path $uiSourceDir "index.html"))) {
+            throw "External UI assets not found: $uiSourceDir. Run npm run build in tools/ui first."
+        }
+
+        Write-Step "Copying external UI assets"
+        New-Item -ItemType Directory -Force -Path $uiTargetDir | Out-Null
+        Copy-Item -Path (Join-Path $uiSourceDir "*") -Destination $uiTargetDir -Recurse -Force
     }
 
     # Ensure MinGW runtime DLLs are available after extracting the zip on Win7.

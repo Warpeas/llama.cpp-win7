@@ -14,6 +14,45 @@
 			name="viewport"
 			content="width=device-width, initial-scale=1, interactive-widget=resizes-content"
 		/>
+		<script>
+			if (typeof window.structuredClone !== 'function') {
+				window.structuredClone = function (value) {
+					var seen = new WeakMap();
+					function clone(input) {
+						if (input === null || typeof input !== 'object') return input;
+						if (seen.has(input)) return seen.get(input);
+						if (input instanceof Date) return new Date(input.getTime());
+						if (input instanceof RegExp) return new RegExp(input.source, input.flags);
+						if (input instanceof ArrayBuffer) return input.slice(0);
+						if (Array.isArray(input)) {
+							var array = [];
+							seen.set(input, array);
+							for (var i = 0; i < input.length; i++) array[i] = clone(input[i]);
+							return array;
+						}
+						if (typeof Map !== 'undefined' && input instanceof Map) {
+							var map = new Map();
+							seen.set(input, map);
+							input.forEach(function (entry, key) { map.set(clone(key), clone(entry)); });
+							return map;
+						}
+						if (typeof Set !== 'undefined' && input instanceof Set) {
+							var set = new Set();
+							seen.set(input, set);
+							input.forEach(function (entry) { set.add(clone(entry)); });
+							return set;
+						}
+						var output = {};
+						seen.set(input, output);
+						for (var key in input) {
+							if (Object.prototype.hasOwnProperty.call(input, key)) output[key] = clone(input[key]);
+						}
+						return output;
+					}
+					return clone(value);
+				};
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 

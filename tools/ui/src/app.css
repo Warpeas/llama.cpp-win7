@@ -4,15 +4,141 @@
 @plugin '@tailwindcss/typography';
 @import 'tw-animate-css';
 
+html,
+body {
+	height: 100%;
+	overflow: hidden;
+}
+
+.chat-screen {
+	height: calc(100vh - 1rem);
+	min-height: 0;
+}
+
+@supports not (background-color: color-mix(in oklab, white, transparent)) {
+	[data-slot='input-area'] {
+		background-color: rgba(245, 245, 245, 0.8) !important;
+		-webkit-backdrop-filter: blur(12px);
+		backdrop-filter: blur(12px);
+	}
+
+	html.dark [data-slot='input-area'] {
+		background-color: rgba(41, 41, 41, 0.85) !important;
+	}
+}
+
+/* Solid fallbacks for browsers that cannot parse the generated modern colors
+ * or viewport units used by the popup primitives. */
+.dialog-overlay-legacy {
+	background: rgba(0, 0, 0, 0.35) !important;
+}
+
+.dialog-content-legacy {
+	position: fixed !important;
+	top: 50% !important;
+	right: auto !important;
+	bottom: auto !important;
+	left: 50% !important;
+	z-index: 51 !important;
+	width: calc(100% - 2rem) !important;
+	max-height: calc(100vh - 2rem) !important;
+	overflow-y: auto !important;
+	translate: none !important;
+	transform: translate(-50%, -50%) !important;
+	background-color: #ffffff !important;
+	color: #252525 !important;
+	border-color: #d9d9d9 !important;
+}
+
+.mcp-server-dialog-legacy {
+	max-width: calc(100% - 2rem) !important;
+}
+
+@media (min-width: 640px) {
+	.mcp-server-dialog-legacy {
+		max-width: 42rem !important;
+	}
+}
+
+.dropdown-content-legacy {
+	max-height: calc(100vh - 1rem) !important;
+	max-height: min(
+		var(--bits-dropdown-menu-content-available-height, calc(100vh - 1rem)),
+		calc(100vh - 1rem)
+	) !important;
+	background-color: #ffffff !important;
+	color: #252525 !important;
+	border-color: #d9d9d9 !important;
+}
+
+.sheet-content-legacy {
+	background-color: #ffffff !important;
+	color: #252525 !important;
+	border-color: #d9d9d9 !important;
+}
+
+.legacy-add-menu {
+	position: fixed !important;
+	top: auto !important;
+	right: auto !important;
+	bottom: 4rem !important;
+	left: 1rem !important;
+	max-height: calc(100vh - 5rem) !important;
+	transform: none !important;
+}
+
+html.dark .dialog-content-legacy,
+html.dark .dropdown-content-legacy,
+html.dark .sheet-content-legacy {
+	background-color: #292929 !important;
+	color: #fafafa !important;
+	border-color: #555555 !important;
+}
+
+@supports (height: 100dvh) {
+	.dialog-content-legacy {
+		top: 50% !important;
+		right: auto !important;
+		bottom: auto !important;
+		left: 50% !important;
+		max-height: 100dvh !important;
+		transform: translate(-50%, -50%) !important;
+	}
+}
+
+@supports (height: 100dvh) {
+	.chat-screen {
+		height: calc(100dvh - 1rem);
+	}
+}
+
+@media (min-width: 768px) {
+	.chat-screen {
+		height: calc(100vh - 1rem - var(--chat-tabs-offset, 0px));
+	}
+
+	@supports (height: 100dvh) {
+		.chat-screen {
+			height: calc(100dvh - 1rem - var(--chat-tabs-offset, 0px));
+		}
+	}
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
 	--radius: 0.625rem;
+	--background: #ffffff;
 	--background: oklch(1 0 0);
+	--foreground: #252525;
 	--foreground: oklch(0.145 0 0);
+	--card: #ffffff;
 	--card: oklch(1 0 0);
+	--card-foreground: #252525;
 	--card-foreground: oklch(0.145 0 0);
+	--popover: #ffffff;
 	--popover: oklch(1 0 0);
+	--popover-foreground: #252525;
 	--popover-foreground: oklch(0.145 0 0);
 	--primary: oklch(0.205 0 0);
 	--primary-foreground: oklch(0.985 0 0);
@@ -61,11 +187,17 @@
 }
 
 .dark {
+	--background: #292929;
 	--background: oklch(0.16 0 0);
+	--foreground: #fafafa;
 	--foreground: oklch(0.985 0 0);
+	--card: #343434;
 	--card: oklch(0.205 0 0);
+	--card-foreground: #fafafa;
 	--card-foreground: oklch(0.985 0 0);
+	--popover: #343434;
 	--popover: oklch(0.205 0 0);
+	--popover-foreground: #fafafa;
 	--popover-foreground: oklch(0.985 0 0);
 	--primary: oklch(0.922 0 0);
 	--primary-foreground: oklch(0.205 0 0);

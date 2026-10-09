@@ -23,7 +23,7 @@
 	});
 </script>
 
-<div class={showTabs ? 'md:[--chat-tabs-offset:1.25rem]' : ''}>
+<div class={`h-full min-h-0 ${showTabs ? 'md:[--chat-tabs-offset:1.25rem]' : ''}`}>
 	{#if showTabs}
 		<ChatTabs />
 	{/if}

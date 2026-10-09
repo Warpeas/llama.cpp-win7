@@ -40,6 +40,7 @@
 	let initialMessage = $state('');
 	let showDeleteDialog = $state(false);
 	let showEmptyFileDialog = $state(false);
+	let chatScreenElement = $state<HTMLElement>();
 	let isEmpty = $derived(
 		showCenteredEmpty && conversationsStore.activeMessages.length === 0 && !chatStore.isLoading
 	);
@@ -58,7 +59,7 @@
 	});
 
 	const autoScroll = createAutoScrollController();
-	const scroll = useChatScreenScroll(autoScroll);
+	const scroll = useChatScreenScroll(autoScroll, () => chatScreenElement);
 	const activeModel = useChatScreenActiveModel();
 	const fileUpload = useChatScreenFileUpload({
 		activeModelId: () => activeModel.activeModelId,
@@ -272,30 +273,31 @@
 	});
 
 	onDestroy(() => autoScroll.destroy());
+
+	function handleChatScreenScroll(event: UIEvent) {
+		scroll.handleScroll(event);
+		handleMobileScroll();
+
+		if (event.isTrusted && Date.now() > mobileScrollDownHintLockedUntil) {
+			mobileScrollDownHint = false;
+		}
+	}
 </script>
 
 {#if dragAndDrop.isDragOver}
 	<ChatScreenDragOverlay />
 {/if}
 
-<svelte:window
-	onkeydown={handleKeydown}
-	onscroll={(e) => {
-		scroll.handleScroll(e);
-		handleMobileScroll();
-
-		if (e.isTrusted && Date.now() > mobileScrollDownHintLockedUntil) {
-			mobileScrollDownHint = false;
-		}
-	}}
-/>
+<svelte:window onkeydown={handleKeydown} />
 
 {#if isServerLoading}
 	<ServerLoadingSplash />
 {:else}
 	<div
+		bind:this={chatScreenElement}
 		style:--chat-form-bottom-position={chatFormBottomPosition}
-		class="chat-screen flex grow flex-col min-h-[calc(100dvh-1rem)] md:min-h-[calc(100dvh-1rem-var(--chat-tabs-offset,0px))] px-4 md:py-0 pt-12 pb-48 md:pb-4"
+		class="chat-screen flex grow min-h-0 flex-col overflow-x-hidden overflow-y-auto px-4 pt-12 pb-48 md:py-0 md:pb-4"
+		onscroll={handleChatScreenScroll}
 		ondragenter={dragAndDrop.dragHandlers.dragenter}
 		ondragleave={dragAndDrop.dragHandlers.dragleave}
 		ondragover={dragAndDrop.dragHandlers.dragover}

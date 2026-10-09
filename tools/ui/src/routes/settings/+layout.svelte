@@ -33,6 +33,6 @@
 	<ActionIcon icon={X} onclick={handleClose} tooltip="Close" />
 </div>
 
-<div class="min-h-full">
+<div class="h-full min-h-0 overflow-y-auto">
 	{@render children?.()}
 </div>

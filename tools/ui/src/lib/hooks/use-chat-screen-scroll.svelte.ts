@@ -1,7 +1,7 @@
 /**
  * Scroll container binding and navigation guard for the ChatScreen.
  *
- * Binds the `AutoScrollController` to `document.documentElement`, exposes
+ * Binds the `AutoScrollController` to the chat screen element, exposes
  * the container for programmatic scrolling, and flags an `isNavigating`
  * window during route changes so the controller can reset without its
  * scroll handler seeing spurious events from layout shifts.
@@ -10,7 +10,10 @@
 import type { AutoScrollController } from './use-auto-scroll.svelte';
 import { afterNavigate, beforeNavigate } from '$app/navigation';
 
-export function useChatScreenScroll(autoScroll: AutoScrollController) {
+export function useChatScreenScroll(
+	autoScroll: AutoScrollController,
+	getContainer?: () => HTMLElement | undefined
+) {
 	let chatScrollContainer: HTMLElement | undefined = $state();
 	let isNavigating = $state(false);
 
@@ -35,7 +38,7 @@ export function useChatScreenScroll(autoScroll: AutoScrollController) {
 	});
 
 	$effect(() => {
-		chatScrollContainer = document.documentElement;
+		chatScrollContainer = getContainer?.() ?? document.documentElement;
 		autoScroll.setContainer(chatScrollContainer);
 	});
 

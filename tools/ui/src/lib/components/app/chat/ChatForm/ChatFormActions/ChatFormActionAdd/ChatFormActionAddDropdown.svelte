@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { File, FolderOpen, MessageSquare, Plus, Zap } from '@lucide/svelte';
+	import { browser } from '$app/environment';
 	import {
 		ChatFormActionAddMcpServersSubmenu,
 		ChatFormActionAddReasoningSubmenu,
@@ -27,6 +28,8 @@
 	const chatFormActions = getChatFormActionsContext();
 
 	let dropdownOpen = $state(false);
+	const legacyLayout =
+		browser && (!window.CSS || typeof window.CSS.supports !== 'function' || !window.CSS.supports('height', '100dvh'));
 	// The system message action moves focus to the message editor, so the menu
 	// must not restore focus to the trigger on close
 	let suppressCloseAutoFocus = false;
@@ -85,7 +88,7 @@
 
 		<DropdownMenu.Content
 			align="start"
-			class="w-52"
+			class={legacyLayout ? 'legacy-add-menu w-52' : 'w-52'}
 			onCloseAutoFocus={(e) => {
 				if (suppressCloseAutoFocus) {
 					suppressCloseAutoFocus = false;
